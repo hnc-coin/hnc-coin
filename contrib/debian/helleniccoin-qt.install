@@ -1,0 +1,6 @@
+usr/local/bin/helleniccoin-qt usr/bin
+share/pixmaps/helleniccoin32.xpm usr/share/pixmaps
+share/pixmaps/helleniccoin16.xpm usr/share/pixmaps
+share/pixmaps/helleniccoin128.png usr/share/pixmaps
+debian/helleniccoin-qt.desktop usr/share/applications
+debian/helleniccoin-qt.protocol usr/share/kde4/services/

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=HellenicCoin Core
+Comment=HellenicCoin P2P Cryptocurrency
+Comment[de]=Verbinde mit dem HellenicCoin peer-to-peer Netzwerk
+Comment[fr]=HellenicCoin, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=HellenicCoin, eşten eşe kriptografik sanal para birimi
+Exec=helleniccoin-qt %u
+Terminal=false
+Type=Application
+Icon=helleniccoin128
+MimeType=x-scheme-handler/helleniccoin;
+Categories=Office;Finance;

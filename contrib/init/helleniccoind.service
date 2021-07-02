@@ -1,0 +1,22 @@
+[Unit]
+Description=HellenicCoin's distributed currency daemon
+After=network.target
+
+[Service]
+User=helleniccoincore
+Group=helleniccoincore
+
+Type=forking
+PIDFile=/var/lib/helleniccoind/helleniccoind.pid
+ExecStart=/usr/bin/helleniccoind -daemon -pid=/var/lib/helleniccoind/helleniccoind.pid \
+-conf=/etc/helleniccoincore/helleniccoin.conf -datadir=/var/lib/helleniccoind -disablewallet
+
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target
