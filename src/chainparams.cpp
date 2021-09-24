@@ -461,7 +461,7 @@ public:
         nDefaultPort = 41052;
         nPruneAfterHeight = 1000;
 
-        genesis = CreateGenesisBlock(1615560014UL, 407859UL, 0x1e0ffff0, 1, 5 * COIN);
+        genesis = CreateGenesisBlock(1631514890UL, 1833960UL, 0x1e0ffff0, 1, 5 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         // calculate testnet genesis block
         //consensus.hashGenesisBlock = uint256S("0x00");
@@ -484,7 +484,7 @@ public:
             std::cout << "blockhash: " << genesis.GetHash().ToString().c_str() << "\n";
             std::cout << "merklehash: " << genesis.hashMerkleRoot.ToString().c_str() << "\n";
         }
-        assert(consensus.hashGenesisBlock == uint256S("0x000005e2d4cfe29bd3bfe07af45bd9639d284ce3b21ca79b629e7616c895e20a"));
+        assert(consensus.hashGenesisBlock == uint256S("0x00000f2ba3274ffdfd0034d9eea21c7350c33debc276d0ce0b449f98ca3a2599"));
         assert(genesis.hashMerkleRoot == uint256S("0x69587449b6c60494903474468f7bf0423703e7ae0b4de58a2b8d41afe45dc486"));
 
         vFixedSeeds.clear();
