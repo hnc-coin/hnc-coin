@@ -18,6 +18,7 @@
 #include "miner.h"
 #include "net.h"
 #include "pow.h"
+#include "rpc/blockchain.h"
 #include "rpc/server.h"
 #include "spork.h"
 #include "txmempool.h"

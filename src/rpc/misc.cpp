@@ -11,6 +11,7 @@
 #include "net.h"
 #include "netbase.h"
 #include "rpc/server.h"
+#include "rpc/blockchain.h"
 #include "timedata.h"
 #include "txmempool.h"
 #include "util.h"
