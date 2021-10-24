@@ -354,7 +354,14 @@ UniValue getaddressesbyaccount(const JSONRPCRequest& request)
     return ret;
 }
 
-static void SendMoney(CWallet * const pwallet, const CTxDestination &address, CAmount nValue, bool fSubtractFeeFromAmount, CWalletTx& wtxNew, bool fUseInstantSend = false, bool fUsePrivateSend = false)
+static CAmount SendMoney(CWallet * const pwallet,
+                         const CTxDestination &address,
+                         CAmount nValue,
+                         bool fSubtractFeeFromAmount,
+                         CWalletTx& wtxNew,
+                         bool fUseInstantSend = false,
+                         bool fUsePrivateSend = false,
+                         bool estimafeTransactionFee = false)
 {
     CAmount curBalance = pwallet->GetBalance();
 
@@ -386,6 +393,9 @@ static void SendMoney(CWallet * const pwallet, const CTxDestination &address, CA
             strError = strprintf("Error: This transaction requires a transaction fee of at least %s", FormatMoney(nFeeRequired));
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
+    if (estimafeTransactionFee) {
+        return nFeeRequired;
+    }
     CValidationState state;
     // the new IX system does not require explicit IX messages
     std::string strCommand = NetMsgType::TX;
@@ -396,6 +406,7 @@ static void SendMoney(CWallet * const pwallet, const CTxDestination &address, CA
         strError = strprintf("Error: The transaction was rejected! Reason given: %s", state.GetRejectReason());
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
+    return nFeeRequired;
 }
 
 UniValue sendtoaddress(const JSONRPCRequest& request)
@@ -465,6 +476,64 @@ UniValue sendtoaddress(const JSONRPCRequest& request)
     SendMoney(pwallet, address.Get(), nAmount, fSubtractFeeFromAmount, wtx, fUseInstantSend, fUsePrivateSend);
 
     return wtx.GetHash().GetHex();
+}
+
+UniValue gettransactionfee(const JSONRPCRequest& request)
+{
+    CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() < 2 || request.params.size() > 7)
+        throw std::runtime_error(
+            "gettransactionfee \"address\" amount ( \"comment\" \"comment_to\" subtractfeefromamount use_is use_ps )\n"
+            "\nSend an amount to a given address.\n"
+            + HelpRequiringPassphrase(pwallet) +
+            "\nArguments:\n"
+            "1. \"address\"            (string, required) The helleniccoin address to send to.\n"
+            "2. \"amount\"             (numeric or string, required) The amount in " + CURRENCY_UNIT + " to send. eg 0.1\n"
+            "5. subtractfeefromamount  (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
+            "                             The recipient will receive less amount of HellenicCoin than you enter in the amount field.\n"
+            "6. \"use_is\"             (bool, optional, default=false) Send this transaction as InstantSend\n"
+            "7. \"use_ps\"             (bool, optional, default=false) Use anonymized funds only\n"
+            "\nResult:\n"
+            "\"txid\"                  (string) The transaction id.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("gettransactionfee", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwG\" 0.1")
+            + HelpExampleCli("gettransactionfee", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwG\" 0.1 \"donation\" \"seans outpost\"")
+            + HelpExampleCli("gettransactionfee", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwG\" 0.1 \"\" \"\" true")
+            + HelpExampleRpc("gettransactionfee", "\"XwnLY9Tf7Zsef8gMGL2fhWA9ZmMjt4KPwG\", 0.1, \"donation\", \"seans outpost\"")
+        );
+
+    LOCK2(cs_main, pwallet->cs_wallet);
+
+    CBitcoinAddress address(request.params[0].get_str());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid HellenicCoin address");
+
+    // Amount
+    CAmount nAmount = AmountFromValue(request.params[1]);
+    if (nAmount <= 0)
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
+
+
+    bool fSubtractFeeFromAmount = false;
+    if (request.params.size() > 2)
+        fSubtractFeeFromAmount = request.params[4].get_bool();
+
+    bool fUseInstantSend = false;
+    bool fUsePrivateSend = false;
+    if (request.params.size() > 3)
+        fUseInstantSend = request.params[5].get_bool();
+    if (request.params.size() > 4)
+        fUsePrivateSend = request.params[6].get_bool();
+
+    EnsureWalletIsUnlocked(pwallet);
+
+    // Wallet comments
+    CWalletTx wtx;
+    return ValueFromAmount(SendMoney(pwallet, address.Get(), nAmount, fSubtractFeeFromAmount, wtx, fUseInstantSend, fUsePrivateSend, true));
 }
 
 UniValue instantsendtoaddress(const JSONRPCRequest& request)
@@ -3054,6 +3123,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "sendfrom",                 &sendfrom,                 false,  {"fromaccount","toaddress","amount","minconf","addlocked","comment","comment_to"} },
     { "wallet",             "sendmany",                 &sendmany,                 false,  {"fromaccount","amounts","minconf","addlocked","comment","subtractfeefrom"} },
     { "wallet",             "sendtoaddress",            &sendtoaddress,            false,  {"address","amount","comment","comment_to","subtractfeefromamount"} },
+    { "wallet",             "gettransactionfee",        &gettransactionfee,        false,  {"address","amount","comment","comment_to","subtractfeefromamount"} },
     { "wallet",             "setaccount",               &setaccount,               true,   {"address","account"} },
     { "wallet",             "settxfee",                 &settxfee,                 true,   {"amount"} },
     { "wallet",             "setprivatesendrounds",     &setprivatesendrounds,     true,   {"rounds"} },
