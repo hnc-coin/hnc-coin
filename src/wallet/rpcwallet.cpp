@@ -361,7 +361,7 @@ static CAmount SendMoney(CWallet * const pwallet,
                          CWalletTx& wtxNew,
                          bool fUseInstantSend = false,
                          bool fUsePrivateSend = false,
-                         bool estimafeTransactionFee = false)
+                         bool estimateTransactionFee = false)
 {
     CAmount curBalance = pwallet->GetBalance();
 
@@ -369,7 +369,7 @@ static CAmount SendMoney(CWallet * const pwallet,
     if (nValue <= 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid amount");
 
-    if (nValue > curBalance)
+    if (!estimateTransactionFee && nValue > curBalance)
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
 
     if (pwallet->GetBroadcastTransactions() && !g_connman) {
@@ -387,13 +387,14 @@ static CAmount SendMoney(CWallet * const pwallet,
     int nChangePosRet = -1;
     CRecipient recipient = {scriptPubKey, nValue, fSubtractFeeFromAmount};
     vecSend.push_back(recipient);
+    std::string aaaaaa;
     if (!pwallet->CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired, nChangePosRet,
-                                         strError, NULL, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend)) {
-        if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance)
-            strError = strprintf("Error: This transaction requires a transaction fee of at least %s", FormatMoney(nFeeRequired));
+                                         strError, NULL, true, fUsePrivateSend ? ONLY_DENOMINATED : ALL_COINS, fUseInstantSend, 0, estimateTransactionFee)) {
+        //if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance)
+        //    strError = strprintf("Error: This transaction requires a transaction fee of at least %s", std::to_string(nFeeRequired));
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
     }
-    if (estimafeTransactionFee) {
+    if (estimateTransactionFee) {
         return nFeeRequired;
     }
     CValidationState state;
