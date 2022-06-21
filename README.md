@@ -1,3 +1,5 @@
+# hnc-coin
+
 UNIX BUILD NOTES
 ====================
 Some notes on how to build HellenicCoin Core in Unix.
